@@ -77,21 +77,32 @@ class Movies extends Component {
 
      };
 
-    render() { 
+     getPagedData = () => {
         const {pageSize, currentPage, movies: allMovies, selectedGenre, sortColumn} = this.state;
+
+        const filtered = selectedGenre && selectedGenre._id ? allMovies.filter(m => m.genre._id === selectedGenre._id) : allMovies;
+
+
+        const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
+
+      const movies = paginate(sorted, currentPage, pageSize);
+
+      return {totalCount: filtered.length, data:movies};
+
+     };
+
+    render() { 
+        const {pageSize, currentPage, sortColumn} = this.state;
         
         const { length: count } = this.state.movies;
 
         if(count === 0)
             return <p>there are no movies in the datbase</p>
 
-            const filtered = selectedGenre && selectedGenre._id ? allMovies.filter(m => m.genre._id === selectedGenre._id) : allMovies;
+            const {totalCount, data: movies} = this.getPagedData();
 
-
-              const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
-
-
-            const movies = paginate(sorted, currentPage, pageSize);
+           
         
 
         return ( <div className="row">
@@ -102,7 +113,7 @@ class Movies extends Component {
     
                 </div>
             <div className="col">
-            <p>Showing {filtered.length} movies in the database</p>
+            <p>Showing {totalCount} movies in the database</p>
             
             <MoviesTable movies={movies}
                          onLike={this.handleLike} 
@@ -111,7 +122,7 @@ class Movies extends Component {
                          sortColumn={sortColumn}
                          />
             
-        <Pagination currentPage={currentPage} itemsCount={filtered.length} pageSize={pageSize} onPageChange={this.handlePagination} classes={this.state.pagiClasses} />
+        <Pagination currentPage={currentPage} itemsCount={totalCount} pageSize={pageSize} onPageChange={this.handlePagination} classes={this.state.pagiClasses} />
             </div>
             
             
